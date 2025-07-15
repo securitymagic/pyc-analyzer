@@ -1,7 +1,12 @@
+A PYC file analyzer, which attempts to deconstruct PYC files and look for suspicious attributes. The script will attempt to work with multiple versions of PYC files, compiled in various versions and will give details and suspected decoding details. 
+
+This is a work in progress, still in its initial stages and is currently being built and testing against only 2 PYC malware files. There are false positives to fix, bugs to work out, and better detections to add. Current version does work nicely on sample 1da7a04105561fd2bdeec72d6fcec43b, there are less details (like the reverse function) when running in earlier versions of Python 3, but most the details are still present.
+
+Example Usage:
 python3.13 testpyc.py de195ebb0f1cf3762d73f956b9d21b63de1a5bbe9626a78af623ed9f59ed760f 
 python3.13 testpyc.py license.pyc (1da7a04105561fd2bdeec72d6fcec43b)
 
-OUTPUT
+Example OUTPUT:
 python3.13 testpyc.py license.pyc 
 [*] Detected .pyc magic version: 3571
 [*] Analyzing: license.pyc
