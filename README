@@ -1,0 +1,28 @@
+python3.13 testpyc.py de195ebb0f1cf3762d73f956b9d21b63de1a5bbe9626a78af623ed9f59ed760f 
+python3.13 testpyc.py license.pyc (1da7a04105561fd2bdeec72d6fcec43b)
+
+OUTPUT
+python3.13 testpyc.py license.pyc 
+[*] Detected .pyc magic version: 3571
+[*] Analyzing: license.pyc
+[*] Searching for XOR and decoding structures...
+
+[*] Detected reverse slice pattern [::-1] via LOAD_CONST/BUILD_SLICE sequence
+[+] Encoded strings detected:
+  - hex in <module>: f3e4f3c8d8f9eab2f0ffb6a8a4f6a4eaced2daf5c8e8aaf2cddfd9a5dce7...
+  - base64 in <lambda>: zlib
+
+[+] Possible decoding/reversing operations:
+  - Byte casting via bytes @ offset 12 in <module>
+  - Reverse slice [::-1] @ offset 68 in <module>
+  - Byte casting via bytes @ offset 2 in <lambda>
+  - Zlib decompress via decompress @ offset 22 in <lambda>
+  - Generic decode call via b64decode @ offset 62 in <lambda>
+  - Base64 decode via b64decode @ offset 62 in <lambda>
+
+[*] Suggested decoding flow:
+  - Hex decode via fromhex
+  - XOR with constant 157
+  - Reverse via [::-1]
+  - Base64 decode via b64decode
+  - Zlib decompress via decompress
