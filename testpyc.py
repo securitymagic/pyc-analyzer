@@ -220,7 +220,8 @@ def find_decompression_and_reverse_usage(code_obj, path=""):
         "b64decode": "Base64 decode",
         "unhexlify": "Hex decode",
         "bytes": "Byte casting",
-        "reversed": "Reverse iterator"
+        "reversed": "Reverse iterator",
+	"fromhex": "Hex Decode"
     }
 
     for i, instr in enumerate(instructions):
