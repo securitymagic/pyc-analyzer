@@ -33,6 +33,16 @@ KNOWN_MAGIC_HEADERS = {
     b'\x42\x5a\x68': 'bzip2',
     b"MZ": "Windows PE file",
     b'\x7fELF': 'ELF executable',
+    b'\x04\x22\x4D\x18': 'Pickle',
+    b'\x78\xda': 'ZLIB Deflate',
+    b'\x5d\x00\x00': 'LZMA',
+    b'Rar!\x1A\x07': 'RAR',
+    b'7z\xBC\xAF\x27\x1C': '7Zip',
+    b'cNS\x00': '.NET resource',
+    b'\x42\x0d\x0d\x0d': 'PyInstaller Archive',
+    b'PYZ\x00': 'PyInstaller PYZ (encrypted Python modules)',
+    b'MEI': 'PyInstaller Bootloader',
+    b'\x28\xB5\x2F\xFD': 'Zstandard (Zstd)',
 }
 
 def detect_magic_type(blob):
@@ -259,6 +269,28 @@ def extract_all_constants(code_obj):
                 recurse(const)
     recurse(code_obj)
     return found
+    
+def detect_charcode_tuples(code_obj, path=""):
+    findings = []
+
+    for const in code_obj.co_consts:
+        if (
+            isinstance(const, tuple)
+            and all(isinstance(c, int) and 32 <= c <= 126 for c in const)
+            and len(const) >= 4  # avoid false positives from tiny tuples
+        ):
+            try:
+                decoded = bytes(const).decode("utf-8")
+                findings.append((path or "<module>", decoded, const))
+            except Exception:
+                continue
+
+        elif isinstance(const, CodeType):
+            sub_path = f"{path}->{const.co_name}" if path else const.co_name
+            findings.extend(detect_charcode_tuples(const, sub_path))
+
+    return findings
+
 
 def suggest_decoding_order(keys, encoded_strings, funcs, pipeline, code_obj):
     found_steps = set(pipeline)
@@ -328,6 +360,8 @@ def analyze_file(pyc_path):
     funcs = find_decompression_and_reverse_usage(code_obj)
     pipeline = find_decode_pipeline(code_obj)
     cipher_heuristics = find_cipher_mentions(code_obj)
+    charcode_tuples = detect_charcode_tuples(code_obj) 
+    
     if cipher_heuristics:
 	    print("[+] Cipher Heuristics Detected:")
 	    for ctx, desc in cipher_heuristics:
@@ -352,6 +386,13 @@ def analyze_file(pyc_path):
         print("[+] Possible decoding/reversing operations:")
         for ctx, desc, offset in funcs:
             print(f"  - {desc} @ offset {offset} in {ctx}")
+        print()
+        
+    if charcode_tuples:
+        print("[+] Suspicious charcode tuples detected:")
+        for ctx, decoded, raw in charcode_tuples:
+            raw_preview = ", ".join(map(str, raw[:8])) + ("..." if len(raw) > 8 else "")
+            print(f"  - In {ctx}: Decodes to '{decoded}' from ({raw_preview})")
         print()
 
     suggest_decoding_order(keys, encoded_strings, funcs, pipeline, code_obj)
